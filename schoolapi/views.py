@@ -4,15 +4,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 #from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from .permissions import IsTeacherOrSuperAdmin,IsSuperAdmin
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-
+from django.contrib.auth.models import Group, User
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class TeacherView(APIView):
-    #authentication_classes = [JWTAuthentication,SessionAuthentication, BasicAuthentication]
+    #authentication_classes = [JSessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated,IsSuperAdmin]
     def get(self, format=None):
 
@@ -34,7 +35,7 @@ class StudentView(APIView):
     """
     A class based view for creating and fetching student records
     """
-    #authentication_classes = [JWTAuthentication,SessionAuthentication, BasicAuthentication]
+    #authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated,IsTeacherOrSuperAdmin]
     def get(self, format=None):
         """
@@ -86,3 +87,48 @@ def studentDetail(request,pk=None):
     "subject":"Physics"
 }
 '''
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def registration(request):
+    serializer = UserSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    user = serializer.save()
+    group = Group.objects.get_or_create(name ='superadmin')[0]
+    user.groups.add(group)
+    refresh = RefreshToken.for_user(user)
+    res = {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+    return Response(res, status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def teacherRegistration(request):
+    serializer = TeacherSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    user = serializer.save()
+    refresh = RefreshToken.for_user(user)
+
+    res = {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+    return Response(res, status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def studentRegistration(request):
+    serializer = StudentSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    user = serializer.save()
+    refresh = RefreshToken.for_user(user)
+    res = {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+    return Response(res, status.HTTP_201_CREATED)
