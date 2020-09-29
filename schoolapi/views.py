@@ -3,7 +3,7 @@ from .models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+#from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsTeacherOrSuperAdmin,IsSuperAdmin
 from rest_framework.decorators import api_view,permission_classes
@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 
 
 class TeacherView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    #authentication_classes = [JWTAuthentication,SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated,IsSuperAdmin]
     def get(self, format=None):
 
@@ -34,7 +34,7 @@ class StudentView(APIView):
     """
     A class based view for creating and fetching student records
     """
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    #authentication_classes = [JWTAuthentication,SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated,IsTeacherOrSuperAdmin]
     def get(self, format=None):
         """
