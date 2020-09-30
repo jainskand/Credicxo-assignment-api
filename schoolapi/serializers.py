@@ -3,6 +3,7 @@ from .models import *
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 
+# serializer for User Model
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -14,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-
+#serializer for Teacher
 class TeacherSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=True)
 
@@ -23,8 +24,10 @@ class TeacherSerializer(serializers.ModelSerializer):
         fields = ('user', 'subject',)
 
     def create(self, validated_data):
+        #creating user account for teacher
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
+        #adding teacher to user groups
         group = Group.objects.get_or_create(name ='teacher')[0]
         user.groups.add(group)
         user.save()
@@ -32,6 +35,7 @@ class TeacherSerializer(serializers.ModelSerializer):
                             subject=validated_data.pop('subject'))
         return teacher
 
+#serializer for Student
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=True)
 
@@ -40,8 +44,10 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = ('user', 'student_class',)
 
     def create(self, validated_data):
+        #creating user account for teacher
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
+        #adding teacher to user groups
         group = Group.objects.get_or_create(name ='student')[0]
         user.groups.add(group)
         user.save()

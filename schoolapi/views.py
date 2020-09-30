@@ -13,10 +13,17 @@ from django.contrib.auth.models import Group, User
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class TeacherView(APIView):
+    """
+    A class based view for creating and fetching teachers records
+    """
     #authentication_classes = [JSessionAuthentication, BasicAuthentication]
+    #permissions so only super admin users can access methods
     permission_classes = [IsAuthenticated,IsSuperAdmin]
     def get(self, format=None):
-
+        """
+        Get all the teachers records
+        :return: Returns a list of teachers records
+        """
         teachers = TeacherProfile.objects.all()
         serializer = TeacherSerializer(teachers, many=True)
         return Response(serializer.data)
@@ -58,20 +65,26 @@ class StudentView(APIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def studentDetail(request,pk=None):
+    '''function view to access detail of a student'''
     if pk==None:
+        # to get detail of logged-in user(student)
         if 'student' in [group.name for group in request.user.groups.all()]:
             student = get_object_or_404(StudentProfile,user=request.user)
             serializer = StudentSerializer(student)
             return Response(serializer.data)
         else:
-            return Response('login as student to access', status=status.HTTP_400_BAD_REQUEST)
+            #if loggedin user is not student throw HTTP_400_BAD_REQUEST
+            return Response({"detail":'login as student to access'}, status=status.HTTP_400_BAD_REQUEST)
     else:
+        #to get detail of any student by providing pk
+        #only teachers or superadmins can access
         groups = [group.name for group in request.user.groups.all()]
         if len(set(groups)&set(('teacher','supeadmin')))!=0:
             student = get_object_or_404(StudentProfile,pk=pk)
             serializer = StudentSerializer(student)
             return Response(serializer.data)
         else:
+            #if user is not teacher or superadmin throwing HTTP_403_FORBIDDEN
             return Response({"detail":"You do not have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
 
 

@@ -21,9 +21,12 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
+    #including all endpoints of schoolapi app
     path('',include('schoolapi.urls')),
     path('admin/', admin.site.urls),
+    #endpoint to get token pair(access token,refresh token)
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    #endpoint to get new access token
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api-auth/', include('rest_framework.urls')),
 
